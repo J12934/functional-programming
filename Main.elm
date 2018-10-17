@@ -7,13 +7,6 @@ type TOKEN = INTEGER Int | FLOAT Float | PLUS | MINUS | TIMES | DIVIDE | EXPONEN
 
 renderList name = li [] [text name]
 
-type LETTER_TYPE = NUMBER | LETTER
-letterType : Char -> LETTER_TYPE
-letterType letter = if Char.isDigit letter || letter == '.' then
-        NUMBER
-    else
-        LETTER
-
 toToken : String -> TOKEN
 toToken string =
     if string == "+" then
@@ -35,48 +28,51 @@ toToken string =
     else if string == ")" then
         CLOSING_BRACKET
     else if String.contains "." string then
-        FLOAT (Maybe.withDefault 0 (String.toFloat string))
+        FLOAT (Maybe.withDefault 42 (String.toFloat string))
     else
         INTEGER (Maybe.withDefault 42 (String.toInt string))
 
-type alias TokenizerState = { unparsedLetters : List Char, numberBuffer: String, letterBuffer: String, tokens: List TOKEN }
+type alias TokenizerState = { unparsedLetters : List Char, bufferType: BufferType, buffer: String, tokens: List TOKEN }
+
+type BufferType = LETTER_BUFFER | NUMBER_BUFFER | BRACKET_BUFFER | EMPTY_BUFFER
+
+bufferTypeToBe : Char -> BufferType
+bufferTypeToBe letter = if letter == '(' || letter == ')' then
+        BRACKET_BUFFER
+    else if Char.isDigit letter || letter == '.' then
+        NUMBER_BUFFER
+    else
+        LETTER_BUFFER
 
 tokenize : TokenizerState -> TokenizerState
 tokenize state =
     case state.unparsedLetters of
-        [] -> if state.letterBuffer /= "" then
-                { state | tokens = (toToken state.letterBuffer) :: state.tokens}
+        [] -> { state | tokens = (List.append state.tokens [(toToken state.buffer)])}
+        letter :: unparsedLetters ->
+            if state.buffer == "" then
+                -- empty buffer. Should create a new buffer add to buffer
+                tokenize {
+                    state |
+                    buffer = (String.fromChar letter),
+                    bufferType = (bufferTypeToBe letter),
+                    unparsedLetters = unparsedLetters
+                    }
+            else if state.bufferType /= (bufferTypeToBe letter) then
+                -- different buffer type. Flush buffer to Token and create new buffer.
+                tokenize {
+                    state |
+                    buffer = (String.fromChar letter),
+                    bufferType = (bufferTypeToBe letter),
+                    tokens = (List.append state.tokens [(toToken state.buffer)]),
+                    unparsedLetters = unparsedLetters
+                    }
             else
-                { state | tokens = (toToken state.numberBuffer) :: state.tokens}
-        letter :: unparsedLetters -> case letterType letter of
-            NUMBER ->
-                case state.letterBuffer of
-                    "" -> log "NUMBER Empty buffer" tokenize {
-                        state |
-                         numberBuffer = state.numberBuffer ++ (String.fromChar letter),
-                         unparsedLetters = unparsedLetters
-                         }
-                    number -> log ("NUMBER Filled ("++ state.letterBuffer ++ ") buffer") tokenize{
-                        state |
-                        numberBuffer = state.numberBuffer ++ (String.fromChar letter),
-                        letterBuffer = "",
-                        tokens = (toToken state.letterBuffer) :: state.tokens,
-                        unparsedLetters = unparsedLetters
-                        }
-            LETTER ->
-                case state.numberBuffer of
-                    "" -> log "LETTER Empty buffer" tokenize {
-                        state |
-                        letterBuffer = state.letterBuffer ++ (String.fromChar letter),
-                        unparsedLetters = unparsedLetters
-                        }
-                    number -> log ("LETTER Filled ("++ state.numberBuffer ++ ") buffer") tokenize {
-                        state |
-                        letterBuffer = state.letterBuffer ++ (String.fromChar letter),
-                        numberBuffer = "",
-                        tokens = (toToken (log "number buffer" state.numberBuffer)) :: state.tokens,
-                        unparsedLetters = unparsedLetters
-                        }
+                -- same buffer type. Append to buffer
+                tokenize {
+                    state |
+                    buffer = state.buffer ++ (String.fromChar letter),
+                    unparsedLetters = unparsedLetters
+                    }
 
 printToken : TOKEN -> String
 printToken token = case token of
@@ -93,6 +89,6 @@ printToken token = case token of
     CLOSING_BRACKET -> "CLOSING_BRACKET"
 
 parse : String -> List TOKEN
-parse expression = (tokenize { unparsedLetters = (String.toList expression), numberBuffer = "", letterBuffer = "", tokens = []}).tokens
+parse expression = (tokenize { unparsedLetters = (String.toList expression), buffer = "", bufferType = EMPTY_BUFFER, tokens = []}).tokens
 
 main = ul [] (List.map renderList (List.map printToken (parse "2+3*5+(32^12)")))
