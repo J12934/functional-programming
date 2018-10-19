@@ -8,29 +8,20 @@ type TOKEN = INTEGER Int | FLOAT Float | PLUS | MINUS | TIMES | DIVIDE | EXPONEN
 renderList name = li [] [text name]
 
 toToken : String -> TOKEN
-toToken string =
-    if string == "+" then
-        PLUS
-    else if string == "-" then
-        MINUS
-    else if string == "*" then
-        TIMES
-    else if string == "/" then
-        DIVIDE
-    else if string == "^" then
-        EXPONENTIATE
-    else if string == "SIN" then
-        SIN
-    else if string == "COSIN" then
-        COSIN
-    else if string == "(" then
-        OPENING_BRACKET
-    else if string == ")" then
-        CLOSING_BRACKET
-    else if String.contains "." string then
-        FLOAT (Maybe.withDefault 42 (String.toFloat string))
-    else
-        INTEGER (Maybe.withDefault 42 (String.toInt string))
+toToken string = case string of
+    "+" -> PLUS
+    "-" -> MINUS
+    "*" -> TIMES
+    "/" -> DIVIDE
+    "^" -> EXPONENTIATE
+    "SIN" -> SIN
+    "COSIN" -> COSIN
+    "(" -> OPENING_BRACKET
+    ")" -> CLOSING_BRACKET
+    number -> if String.contains "." number then
+            FLOAT (Maybe.withDefault 42 (String.toFloat string))
+        else
+            INTEGER (Maybe.withDefault 42 (String.toInt string))
 
 type alias TokenizerState = { unparsedLetters : List Char, bufferType: BufferType, buffer: String, tokens: List TOKEN }
 
@@ -49,15 +40,7 @@ tokenize state =
     case state.unparsedLetters of
         [] -> { state | tokens = (List.append state.tokens [(toToken state.buffer)])}
         letter :: unparsedLetters ->
-            if state.buffer == "" then
-                -- empty buffer. Should create a new buffer add to buffer
-                tokenize {
-                    state |
-                    buffer = (String.fromChar letter),
-                    bufferType = (bufferTypeToBe letter),
-                    unparsedLetters = unparsedLetters
-                    }
-            else if state.bufferType /= (bufferTypeToBe letter) then
+            if state.bufferType /= (bufferTypeToBe letter) then
                 -- different buffer type. Flush buffer to Token and create new buffer.
                 tokenize {
                     state |
@@ -67,10 +50,11 @@ tokenize state =
                     unparsedLetters = unparsedLetters
                     }
             else
-                -- same buffer type. Append to buffer
+                -- empty or same buffer. Should create a new buffer add to buffer
                 tokenize {
                     state |
-                    buffer = state.buffer ++ (String.fromChar letter),
+                    buffer = (String.fromChar letter),
+                    bufferType = (bufferTypeToBe letter),
                     unparsedLetters = unparsedLetters
                     }
 
@@ -78,7 +62,7 @@ printToken : TOKEN -> String
 printToken token = case token of
     INTEGER num -> "Interger(" ++ (String.fromInt num) ++ ")"
     FLOAT num -> "Float(" ++ (String.fromFloat num) ++ ")"
-    PLUS -> "PLUS"
+    PLUS -> "+"
     MINUS -> "MINUS"
     TIMES -> "TIMES"
     DIVIDE -> "DIVIDE"

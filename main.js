@@ -1,13 +1,3 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>App</title>
-</head>
-
-<body>
-<div id="elm-f0111bc4e658d0f98db96260c16f7e49"></div>
-<script>
 (function(scope){
 'use strict';
 
@@ -3997,17 +3987,38 @@ var elm$core$String$contains = _String_contains;
 var elm$core$String$toFloat = _String_toFloat;
 var elm$core$String$toInt = _String_toInt;
 var author$project$App$toToken = function (string) {
-	return (string === '+') ? author$project$App$PLUS : ((string === '-') ? author$project$App$MINUS : ((string === '*') ? author$project$App$TIMES : ((string === '/') ? author$project$App$DIVIDE : ((string === '^') ? author$project$App$EXPONENTIATE : ((string === 'SIN') ? author$project$App$SIN : ((string === 'COSIN') ? author$project$App$COSIN : ((string === '(') ? author$project$App$OPENING_BRACKET : ((string === ')') ? author$project$App$CLOSING_BRACKET : (A2(elm$core$String$contains, '.', string) ? author$project$App$FLOAT(
-		A2(
-			elm$core$Maybe$withDefault,
-			42,
-			elm$core$String$toFloat(string))) : author$project$App$INTEGER(
-		A2(
-			elm$core$Maybe$withDefault,
-			42,
-			elm$core$String$toInt(string))))))))))));
+	switch (string) {
+		case '+':
+			return author$project$App$PLUS;
+		case '-':
+			return author$project$App$MINUS;
+		case '*':
+			return author$project$App$TIMES;
+		case '/':
+			return author$project$App$DIVIDE;
+		case '^':
+			return author$project$App$EXPONENTIATE;
+		case 'SIN':
+			return author$project$App$SIN;
+		case 'COSIN':
+			return author$project$App$COSIN;
+		case '(':
+			return author$project$App$OPENING_BRACKET;
+		case ')':
+			return author$project$App$CLOSING_BRACKET;
+		default:
+			var number = string;
+			return A2(elm$core$String$contains, '.', number) ? author$project$App$FLOAT(
+				A2(
+					elm$core$Maybe$withDefault,
+					42,
+					elm$core$String$toFloat(string))) : author$project$App$INTEGER(
+				A2(
+					elm$core$Maybe$withDefault,
+					42,
+					elm$core$String$toInt(string)));
+	}
 };
-var elm$core$Basics$append = _Utils_append;
 var elm$core$Basics$neq = _Utils_notEqual;
 var elm$core$Basics$add = _Basics_add;
 var elm$core$Basics$gt = _Utils_gt;
@@ -4119,7 +4130,26 @@ var author$project$App$tokenize = function (state) {
 		} else {
 			var letter = _n0.a;
 			var unparsedLetters = _n0.b;
-			if (state.buffer === '') {
+			if (!_Utils_eq(
+				state.bufferType,
+				author$project$App$bufferTypeToBe(letter))) {
+				var $temp$state = _Utils_update(
+					state,
+					{
+						buffer: elm$core$String$fromChar(letter),
+						bufferType: author$project$App$bufferTypeToBe(letter),
+						tokens: A2(
+							elm$core$List$append,
+							state.tokens,
+							_List_fromArray(
+								[
+									author$project$App$toToken(state.buffer)
+								])),
+						unparsedLetters: unparsedLetters
+					});
+				state = $temp$state;
+				continue tokenize;
+			} else {
 				var $temp$state = _Utils_update(
 					state,
 					{
@@ -4129,38 +4159,6 @@ var author$project$App$tokenize = function (state) {
 					});
 				state = $temp$state;
 				continue tokenize;
-			} else {
-				if (!_Utils_eq(
-					state.bufferType,
-					author$project$App$bufferTypeToBe(letter))) {
-					var $temp$state = _Utils_update(
-						state,
-						{
-							buffer: elm$core$String$fromChar(letter),
-							bufferType: author$project$App$bufferTypeToBe(letter),
-							tokens: A2(
-								elm$core$List$append,
-								state.tokens,
-								_List_fromArray(
-									[
-										author$project$App$toToken(state.buffer)
-									])),
-							unparsedLetters: unparsedLetters
-						});
-					state = $temp$state;
-					continue tokenize;
-				} else {
-					var $temp$state = _Utils_update(
-						state,
-						{
-							buffer: _Utils_ap(
-								state.buffer,
-								elm$core$String$fromChar(letter)),
-							unparsedLetters: unparsedLetters
-						});
-					state = $temp$state;
-					continue tokenize;
-				}
 			}
 		}
 	}
@@ -4178,6 +4176,7 @@ var author$project$App$parse = function (expression) {
 			unparsedLetters: elm$core$String$toList(expression)
 		}).tokens;
 };
+var elm$core$Basics$append = _Utils_append;
 var elm$core$String$fromFloat = _String_fromNumber;
 var elm$core$String$fromInt = _String_fromNumber;
 var author$project$App$printToken = function (token) {
@@ -4189,7 +4188,7 @@ var author$project$App$printToken = function (token) {
 			var num = token.a;
 			return 'Float(' + (elm$core$String$fromFloat(num) + ')');
 		case 'PLUS':
-			return 'PLUS';
+			return '+';
 		case 'MINUS':
 			return 'MINUS';
 		case 'TIMES':
@@ -4620,12 +4619,3 @@ var author$project$App$main = A2(
 			author$project$App$printToken,
 			author$project$App$parse('2+3*5+(32^12)'))));
 _Platform_export({'App':{'init':_VirtualDom_init(author$project$App$main)(0)(0)}});}(this));
-
-var app = Elm.App.init({ node: document.getElementById("elm-f0111bc4e658d0f98db96260c16f7e49") });
-if (document.getElementById("elm-f0111bc4e658d0f98db96260c16f7e49"))
-{
-  document.getElementById("elm-f0111bc4e658d0f98db96260c16f7e49").innerText = 'This is a headless program, meaning there is nothing to show here.\n\nI started the program anyway though, and you can access it as `app` in the developer console.';
-}
-</script>
-</body>
-</html>
