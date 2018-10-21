@@ -3,19 +3,11 @@ module App exposing (main)
 import Browser
 import Debug exposing (log)
 import Html exposing (..)
-import Html.Attributes exposing (type_, value)
+import Html.Attributes exposing (class, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Interpreter
 import List
 import Maybe
-
-
-term =
-    "cosx"
-
-
-num =
-    String.fromFloat (Interpreter.interprete 2 "2*x^2+2*x^2")
 
 
 type alias Model =
@@ -25,10 +17,18 @@ type alias Model =
     }
 
 
+demoF =
+    "12+x^3"
+
+
+demoX =
+    5
+
+
 init =
-    { f = ""
-    , x = 0
-    , f_y = 0
+    { f = demoF
+    , x = demoX
+    , f_y = Interpreter.interprete demoX demoF
     }
 
 
@@ -58,16 +58,17 @@ update action model =
 
 
 view model =
-    div []
-        [ div []
-            [ label [] [ text "function" ]
+    div [ class "container" ]
+        [ div [ class "result" ] [ text ("f(" ++ String.fromFloat model.x ++ ")=" ++ String.fromFloat model.f_y) ]
+        , div [ class "result" ] [ text ("f'(" ++ String.fromFloat model.x ++ ")=?") ]
+        , div [ class "input" ]
+            [ label [] [ text "f(x)=" ]
             , input [ type_ "text", onInput FUNCTION_CHANGED, value model.f ] []
             ]
-        , div []
-            [ label [] [ text "x" ]
+        , div [ class "input" ]
+            [ label [] [ text "x=" ]
             , input [ type_ "number", onInput X_CHANGED, value (String.fromFloat model.x) ] []
             ]
-        , div [] [ text (String.fromFloat model.f_y) ]
         ]
 
 

@@ -4,7 +4,45 @@
 <head>
 	<meta charset="UTF-8">
 	<title>App</title>
+	<style>
+		.container {
+			height: 70vh;
+			width: 70vw;
+			display: grid;
 
+			margin: 15vh 15vw;
+
+			grid-template-columns: 50% 50%;
+			grid-template-rows: 50% 50%;
+
+			justify-items: center;
+			align-items: center;
+		}
+
+		.result {
+			font-family: 'Dank Mono', monospace;
+			font-size: 64px;
+
+			padding-top: 15vh;
+		}
+
+		.input {
+			font-family: 'Dank Mono', monospace;
+			font-size: 32px;
+			align-content: center;
+			display: flex;
+
+			padding-bottom: 15vh;
+		}
+
+		.input input {
+			font-family: 'Dank Mono', monospace;
+			font-size: 24px;
+			border: none;
+			border-bottom: 1px grey solid;
+			padding: 0 4px;
+		}
+	</style>
 </head>
 
 <body>
