@@ -1,7 +1,6 @@
 module App exposing (main)
 
 import Browser
-import Debug exposing (log)
 import Html exposing (..)
 import Html.Attributes exposing (class, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -49,7 +48,7 @@ update action model =
         X_CHANGED xString ->
             let
                 xVal =
-                    log "X Changed to:" (Maybe.withDefault 1 (String.toFloat xString))
+                    Maybe.withDefault 1 (String.toFloat xString)
             in
             { model
                 | x = xVal
