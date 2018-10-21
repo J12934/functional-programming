@@ -1,78 +1,79 @@
-module App exposing ( main )
-import Html exposing (node, li, ul, text)
-import List
+module App exposing (main)
+
+import Browser
 import Debug exposing (log)
+import Html exposing (..)
+import Html.Attributes exposing (type_, value)
+import Html.Events exposing (onClick, onInput)
+import Interpreter
+import List
+import Maybe
 
-type TOKEN = INTEGER Int | FLOAT Float | PLUS | MINUS | TIMES | DIVIDE | EXPONENTIATE | SIN | COSIN | OPENING_BRACKET | CLOSING_BRACKET
 
-renderList name = li [] [text name]
+term =
+    "cosx"
 
-toToken : String -> TOKEN
-toToken string = case string of
-    "+" -> PLUS
-    "-" -> MINUS
-    "*" -> TIMES
-    "/" -> DIVIDE
-    "^" -> EXPONENTIATE
-    "SIN" -> SIN
-    "COSIN" -> COSIN
-    "(" -> OPENING_BRACKET
-    ")" -> CLOSING_BRACKET
-    number -> if String.contains "." number then
-            FLOAT (Maybe.withDefault 42 (String.toFloat string))
-        else
-            INTEGER (Maybe.withDefault 42 (String.toInt string))
 
-type alias TokenizerState = { unparsedLetters : List Char, bufferType: BufferType, buffer: String, tokens: List TOKEN }
+num =
+    String.fromFloat (Interpreter.interprete 2 "2*x^2+2*x^2")
 
-type BufferType = LETTER_BUFFER | NUMBER_BUFFER | BRACKET_BUFFER | EMPTY_BUFFER
 
-bufferTypeToBe : Char -> BufferType
-bufferTypeToBe letter = if letter == '(' || letter == ')' then
-        BRACKET_BUFFER
-    else if Char.isDigit letter || letter == '.' then
-        NUMBER_BUFFER
-    else
-        LETTER_BUFFER
+type alias Model =
+    { f : String
+    , x : Float
+    , f_y : Float
+    }
 
-tokenize : TokenizerState -> TokenizerState
-tokenize state =
-    case state.unparsedLetters of
-        [] -> { state | tokens = (List.append state.tokens [(toToken state.buffer)])}
-        letter :: unparsedLetters ->
-            if state.bufferType /= (bufferTypeToBe letter) then
-                -- different buffer type. Flush buffer to Token and create new buffer.
-                tokenize {
-                    state |
-                    buffer = (String.fromChar letter),
-                    bufferType = (bufferTypeToBe letter),
-                    tokens = (List.append state.tokens [(toToken state.buffer)]),
-                    unparsedLetters = unparsedLetters
-                    }
-            else
-                -- empty or same buffer. Should create a new buffer add to buffer
-                tokenize {
-                    state |
-                    buffer = (String.fromChar letter),
-                    bufferType = (bufferTypeToBe letter),
-                    unparsedLetters = unparsedLetters
-                    }
 
-printToken : TOKEN -> String
-printToken token = case token of
-    INTEGER num -> "Interger(" ++ (String.fromInt num) ++ ")"
-    FLOAT num -> "Float(" ++ (String.fromFloat num) ++ ")"
-    PLUS -> "+"
-    MINUS -> "MINUS"
-    TIMES -> "TIMES"
-    DIVIDE -> "DIVIDE"
-    EXPONENTIATE -> "EXPONENTIATE"
-    SIN -> "SIN"
-    COSIN -> "COSIN"
-    OPENING_BRACKET -> "OPENING_BRACKET"
-    CLOSING_BRACKET -> "CLOSING_BRACKET"
+init =
+    { f = ""
+    , x = 0
+    , f_y = 0
+    }
 
-parse : String -> List TOKEN
-parse expression = (tokenize { unparsedLetters = (String.toList expression), buffer = "", bufferType = EMPTY_BUFFER, tokens = []}).tokens
 
-main = ul [] (List.map renderList (List.map printToken (parse "2+3*5+(32^12)")))
+type Action
+    = FUNCTION_CHANGED String
+    | X_CHANGED String
+
+
+update : Action -> Model -> Model
+update action model =
+    case action of
+        FUNCTION_CHANGED func ->
+            { model
+                | f = func
+                , f_y = Interpreter.interprete model.x func
+            }
+
+        X_CHANGED xString ->
+            let
+                xVal =
+                    log "X Changed to:" (Maybe.withDefault 1 (String.toFloat xString))
+            in
+            { model
+                | x = xVal
+                , f_y = Interpreter.interprete xVal model.f
+            }
+
+
+view model =
+    div []
+        [ div []
+            [ label [] [ text "function" ]
+            , input [ type_ "text", onInput FUNCTION_CHANGED, value model.f ] []
+            ]
+        , div []
+            [ label [] [ text "x" ]
+            , input [ type_ "number", onInput X_CHANGED, value (String.fromFloat model.x) ] []
+            ]
+        , div [] [ text (String.fromFloat model.f_y) ]
+        ]
+
+
+main =
+    Browser.sandbox
+        { init = init
+        , update = update
+        , view = view
+        }
