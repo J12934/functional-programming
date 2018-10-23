@@ -79,6 +79,15 @@ isToThePowerOfXRegex =
     parseRegex (numberPattern ++ "\\^x$")
 
 
+isJustXRegex =
+    parseRegex ("^(" ++ numberPattern ++ "){0,1}(\\*){0,1}x$")
+
+
+isJustX : String -> Bool
+isJustX string =
+    Regex.contains isJustXRegex string
+
+
 isToThePowerOfX : String -> Bool
 isToThePowerOfX string =
     Regex.contains isToThePowerOfXRegex string
@@ -147,6 +156,9 @@ parseExpression : String -> Maybe Expression
 parseExpression string =
     if isJustANumber string then
         Just None
+
+    else if isJustX string then
+        Just (XToThePowerOf 1)
 
     else if isCos string then
         Just Cos
