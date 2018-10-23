@@ -13,6 +13,7 @@ type alias Model =
     { f : String
     , x : Float
     , f_y : Float
+    , df_y : Float
     }
 
 
@@ -27,7 +28,8 @@ demoX =
 init =
     { f = demoF
     , x = demoX
-    , f_y = Interpreter.interprete demoX demoF
+    , f_y = Interpreter.interpreteFunction demoX demoF
+    , df_y = Interpreter.interpreteDerivative demoX demoF
     }
 
 
@@ -42,7 +44,8 @@ update action model =
         FUNCTION_CHANGED func ->
             { model
                 | f = func
-                , f_y = Interpreter.interprete model.x func
+                , f_y = Interpreter.interpreteFunction model.x func
+                , df_y = Interpreter.interpreteDerivative model.x func
             }
 
         X_CHANGED xString ->
@@ -52,14 +55,15 @@ update action model =
             in
             { model
                 | x = xVal
-                , f_y = Interpreter.interprete xVal model.f
+                , f_y = Interpreter.interpreteFunction xVal model.f
+                , df_y = Interpreter.interpreteDerivative xVal model.f
             }
 
 
 view model =
     div [ class "container" ]
         [ div [ class "result" ] [ text ("f(" ++ String.fromFloat model.x ++ ")=" ++ String.fromFloat model.f_y) ]
-        , div [ class "result" ] [ text ("f'(" ++ String.fromFloat model.x ++ ")=?") ]
+        , div [ class "result" ] [ text ("f'(" ++ String.fromFloat model.x ++ ")=" ++ String.fromFloat model.df_y) ]
         , div [ class "input" ]
             [ label [] [ text "f(x)=" ]
             , input [ type_ "text", onInput FUNCTION_CHANGED, value model.f ] []
