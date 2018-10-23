@@ -2,9 +2,9 @@ FROM node:10 AS builder
 
 USER root
 
-COPY . /elm
-
 RUN yarn global add elm uglify-js
+
+COPY . /elm
 
 WORKDIR /elm
 
