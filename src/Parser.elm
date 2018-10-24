@@ -186,19 +186,80 @@ parseExpression string =
         Nothing
 
 
-parseTerm : String -> Term
-parseTerm string =
-    { multiplicator = parseMultiplicator string
-    , expression = parseExpression string
+parseTerm : PolynomInterim -> Term
+parseTerm { term, sign } =
+    let
+        multi =
+            parseMultiplicator term
+
+        expr =
+            parseExpression term
+    in
+    case ( multi, sign ) of
+        ( Nothing, Negative ) ->
+            { multiplicator = Just -1
+            , expression = expr
+            }
+
+        ( Just num, Negative ) ->
+            { multiplicator = Just (-1 * Maybe.withDefault 1 multi)
+            , expression = expr
+            }
+
+        ( num, Positive ) ->
+            { multiplicator = multi
+            , expression = expr
+            }
+
+
+type Sign
+    = Positive
+    | Negative
+
+
+type alias PolynomInterim =
+    { term : String
+    , sign : Sign
     }
 
 
-parsePolynomial : String -> List String
+onePositive string =
+    [ { term = string, sign = Positive } ]
+
+
+allNegatives strings =
+    List.map (\string -> { term = string, sign = Negative }) strings
+
+
+createProperSigns : List String -> List PolynomInterim
+createProperSigns list =
+    case list of
+        positive :: negatives ->
+            onePositive positive ++ allNegatives negatives
+
+        [] ->
+            []
+
+
+
+-- Stolen from stack overflow... Because this is somehow now in the std lib...
+-- https://stackoverflow.com/questions/50658633/elm-flattening-lists-or-arrays-using-foldr
+
+
+flatten : List (List a) -> List a
+flatten plane =
+    plane |> List.foldr (++) []
+
+
+parsePolynomial : String -> List PolynomInterim
 parsePolynomial polynomial =
     polynomial
         |> String.toLower
         |> String.replace " " ""
         |> String.split "+"
+        |> List.map (String.split "-")
+        |> List.map createProperSigns
+        |> flatten
 
 
 parse polynomial =
