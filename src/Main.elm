@@ -60,10 +60,15 @@ update action model =
             }
 
 
+printShortendFloat : Float -> String
+printShortendFloat num =
+    String.fromFloat (toFloat (round (num * 1000)) / 1000)
+
+
 view model =
     div [ class "container" ]
-        [ div [ class "result" ] [ text ("f(" ++ String.fromFloat model.x ++ ")=" ++ String.fromFloat model.f_y) ]
-        , div [ class "result" ] [ text ("f'(" ++ String.fromFloat model.x ++ ")=" ++ String.fromFloat model.df_y) ]
+        [ div [ class "result" ] [ text ("f(" ++ printShortendFloat model.x ++ ")=" ++ printShortendFloat model.f_y) ]
+        , div [ class "result" ] [ text ("f'(" ++ printShortendFloat model.x ++ ")=" ++ printShortendFloat model.df_y) ]
         , div [ class "input" ]
             [ label [] [ text "f(x)=" ]
             , input [ type_ "text", onInput FUNCTION_CHANGED, value model.f ] []

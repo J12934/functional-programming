@@ -28,7 +28,7 @@
 
 		.input {
 			font-family: 'Dank Mono', monospace;
-			font-size: 32px;
+			font-size: 24px;
 			align-content: center;
 			display: flex;
 
@@ -41,6 +41,30 @@
 			border: none;
 			border-bottom: 1px grey solid;
 			padding: 0 4px;
+		}
+
+		@media (max-width: 1300px) {
+			.result {
+				font-size: 48px;
+			}
+
+			.container {
+				height: 80vh;
+				width: 80vw;
+				margin: 10vh 10vw;
+			}
+		}
+
+		@media (max-width: 900px) {
+			.result {
+				font-size: 32px;
+			}
+
+			.container {
+				height: 90vh;
+				width: 90vw;
+				margin: 5vh 5vw;
+			}
 		}
 	</style>
 </head>
