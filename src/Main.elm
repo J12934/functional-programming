@@ -73,8 +73,7 @@ view model =
     
 
 main =
-    Browser.element
-        -- using flags to get the seed values from JS
+    Browser.sandbox
         { init = init
         , update = update
         , view = view
