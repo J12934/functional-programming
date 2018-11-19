@@ -2,86 +2,79 @@ module App exposing (main)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (class, type_, value)
-import Html.Events exposing (onClick, onInput)
-import Interpreter
+import Html.Attributes exposing (class, type_, value, action)
+import Html.Events exposing (onClick, onInput, onSubmit)
 import List
+import Dict exposing (Dict)
 import Maybe
 
-
 type alias Model =
-    { f : String
-    , x : Float
-    , f_y : Float
-    , df_y : Float
+    {  notes : Dict String String,
+        draft: String,
+        counter: Int
     }
-
-
-demoF =
-    "12+x^3"
-
-
-demoX =
-    5
-
 
 init =
-    { f = demoF
-    , x = demoX
-    , f_y = Interpreter.interpreteFunction demoX demoF
-    , df_y = Interpreter.interpreteDerivative demoX demoF
+    { notes = Dict.empty,
+      draft = "",
+      counter = 0
     }
 
+type alias Note =
+    {
+    text : String,
+    id : String
+    }
 
 type Action
-    = FUNCTION_CHANGED String
-    | X_CHANGED String
+    = ADD_NOTE
+    | DRAFT_CHANGED String
+    | REMOVE_NOTE String
 
 
 update : Action -> Model -> Model
 update action model =
     case action of
-        FUNCTION_CHANGED func ->
-            { model
-                | f = func
-                , f_y = Interpreter.interpreteFunction model.x func
-                , df_y = Interpreter.interpreteDerivative model.x func
-            }
-
-        X_CHANGED xString ->
+        ADD_NOTE ->
             let
-                xVal =
-                    Maybe.withDefault 1 (String.toFloat xString)
+                newCount = model.counter + 1
             in
+                { model
+                    | notes = Dict.update (String.fromInt newCount) (\_ -> Just model.draft) model.notes,
+                    draft = "",
+                    counter = newCount
+                }
+        DRAFT_CHANGED newDraft ->
             { model
-                | x = xVal
-                , f_y = Interpreter.interpreteFunction xVal model.f
-                , df_y = Interpreter.interpreteDerivative xVal model.f
+                | draft = newDraft
             }
 
-
-printShortendFloat : Float -> String
-printShortendFloat num =
-    String.fromFloat (toFloat (round (num * 1000)) / 1000)
-
+        REMOVE_NOTE key ->
+            { model
+                | notes = Dict.update key (\_ -> Nothing) model.notes
+            }
 
 view model =
-    div [ class "container" ]
-        [ div [ class "result" ] [ text ("f(" ++ printShortendFloat model.x ++ ")=" ++ printShortendFloat model.f_y) ]
-        , div [ class "result" ] [ text ("f'(" ++ printShortendFloat model.x ++ ")=" ++ printShortendFloat model.df_y) ]
-        , div [ class "input" ]
-            [ label [] [ text "f(x)=" ]
-            , input [ type_ "text", onInput FUNCTION_CHANGED, value model.f ] []
+    div [] [
+        ul [] 
+           (List.map (\(key, note) -> li [] [
+               text note,
+               button [onClick (REMOVE_NOTE key)] [ text "x" ]
+            ]) (Dict.toList model.notes))
+        ,
+        form
+            [ onSubmit ADD_NOTE, action "javascript:void(0);" ]
+            [
+                label [] [ text "New Note" ],
+                input [ type_ "text", onInput DRAFT_CHANGED, value model.draft ] [],
+                button [ type_ "submit" ] [ text "Create Note"]
             ]
-        , div [ class "input" ]
-            [ label [] [ text "x=" ]
-            , input [ type_ "number", onInput X_CHANGED, value (String.fromFloat model.x) ] []
-            ]
-        ]
-
+    ]
+    
 
 main =
-    Browser.sandbox
+    Browser.element
+        -- using flags to get the seed values from JS
         { init = init
         , update = update
         , view = view
